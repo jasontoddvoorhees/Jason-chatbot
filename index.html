@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Crystal Lake - Jason's Shack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #000000, #0a0a0a);
+            font-family: 'Arial', sans-serif;
+        }
+        .glow-text {
+            text-shadow: 0 0 10px #8b0000, 0 0 20px #8b0000;
+        }
+        .message-content strong em {
+            display: block;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-black text-gray-200 flex flex-col">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-red-900 to-black border-b-4 border-red-800 p-4 shadow-2xl">
+        <h1 class="text-4xl font-bold text-center text-red-600 glow-text">JASON'S SHACK</h1>
+        <p class="text-center text-red-400 text-sm mt-1">Chat with Jason Voorhees... if you dare</p>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Jason Image Section -->
+        <div class="w-1/3 bg-gradient-to-b from-gray-900 to-black border-r-4 border-red-900 flex flex-col items-center justify-center p-4 relative">
+            <!-- Thought Bubble -->
+            <div id="thoughtBubble" class="hidden absolute top-8 left-4 right-4 bg-gray-800 border-2 border-red-800 rounded-lg p-4 shadow-2xl" style="max-height: 200px; overflow-y: auto;">
+                <div id="thoughtText" class="text-sm text-gray-300 italic"></div>
+                <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-red-800"></div>
+            </div>
+
+            <!-- Jason Image -->
+            <div class="mt-auto mb-8">
+                <img id="jasonImage" src="https://via.placeholder.com/300x400/1a1a1a/8b0000?text=NEUTRAL+Jason" alt="Jason Voorhees" class="rounded-lg border-4 border-red-900 shadow-2xl" style="max-width: 300px; filter: brightness(0.8) contrast(1.2);">
+                <p id="moodText" class="text-center text-red-500 text-xs mt-2 uppercase tracking-wider">Neutral</p>
+            </div>
+        </div>
+
+        <!-- Messages Section -->
+        <div class="w-2/3 flex flex-col">
+            <div id="messagesContainer" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div id="emptyState" class="text-center text-red-600 mt-20">
+                    <p class="text-2xl mb-2">💀</p>
+                    <p class="text-lg italic text-gray-400">The woods are silent...</p>
+                    <p class="text-lg italic text-gray-400 mt-1">Jason stalks from the shadows...</p>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t-4 border-red-900 bg-gray-900 p-4">
+                <div class="flex space-x-2">
+                    <input type="text" id="userInput" placeholder="Speak to Jason..." class="flex-1 bg-gray-800 border-2 border-red-800 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-600">
+                    <button id="sendBtn" class="bg-red-900 hover:bg-red-800 disabled:bg-gray-700 text-white px-6 py-3 rounded-lg border-2 border-red-700 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-600 mt-2 text-center">⚠️ DISCLAIMER: For entertainment purposes only, this is a fictional character chat. All of the answers are fictitious and should not be interpreted as actual guidance or motivation for any particular course of action!!!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Image URLs - REPLACE THESE WITH YOUR ACTUAL JASON GIF/PNG URLS
+        const jasonImages = {
+            neutral: 'https://via.placeholder.com/300x400/1a1a1a/8b0000?text=NEUTRAL+Jason',
+            curious: 'https://via.placeholder.com/300x400/1a1a1a/8b0000?text=CURIOUS+Jason',
+            aggressive: 'https://via.placeholder.com/300x400/1a1a1a/8b0000?text=AGGRESSIVE+Jason',
+            menacing: 'https://via.placeholder.com/300x400/1a1a1a/8b0000?text=MENACING+Jason',
+            angry: 'https://via.placeholder.com/300x400/1a1a1a/8b0000?text=ANGRY+Jason',
+            darkHumor: 'https://via.placeholder.com/300x400/1a1a1a/8b0000?text=DARK+HUMOR+Jason'
+        };
+
+        let currentMood = 'neutral';
+        let loading = false;
+        const messages = [];
+
+        const messagesContainer = document.getElementById('messagesContainer');
+        const emptyState = document.getElementById('emptyState');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const jasonImage = document.getElementById('jasonImage');
+        const moodText = document.getElementById('moodText');
+        const thoughtBubble = document.getElementById('thoughtBubble');
+        const thoughtText = document.getElementById('thoughtText');
+
+        function updateJasonMood(mood) {
+            currentMood = mood;
+            jasonImage.src = jasonImages[mood];
+            moodText.textContent = mood.replace(/([A-Z])/g, ' $1').trim();
+        }
+
+        function addMessage(role, content, mood = null) {
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = `max-w-md px-4 py-3 rounded-lg ${
+                role === 'user' 
+                    ? 'bg-red-900 text-white border-2 border-red-700' 
+                    : 'bg-gray-800 text-gray-300 border-2 border-gray-700 message-content'
+            }`;
+
+            if (role === 'assistant') {
+                const formattedContent = content
+                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                    .replace(/\n/g, '<br/>');
+                contentDiv.innerHTML = formattedContent;
+                
+                // Update thought bubble
+                thoughtText.innerHTML = formattedContent;
+                thoughtBubble.classList.remove('hidden');
+            } else {
+                contentDiv.textContent = content;
+            }
+
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            messages.push({ role, content, mood });
+        }
+
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingIndicator';
+            loadingDiv.className = 'flex justify-start';
+            loadingDiv.innerHTML = `
+                <div class="bg-gray-800 border-2 border-gray-700 px-4 py-3 rounded-lg">
+                    <div class="flex space-x-2">
+                        <div class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                        <div class="w-2 h-2 bg-red-600 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                        <div class="w-2 h-2 bg-red-600 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(loadingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+
+        async function sendMessage() {
+            if (!userInput.value.trim() || loading) return;
+
+            const userMessage = userInput.value.trim();
+            userInput.value = '';
+            addMessage('user', userMessage);
+            loading = true;
+            sendBtn.disabled = true;
+            showLoading();
+
+            try {
+                const currentDate = new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 1000,
+                        messages: [{
+                            role: 'user',
+                            content: `You are Jason Voorhees from Friday the 13th. You communicate through brief, menacing thought bubbles. 
+
+Today's date is ${currentDate}. You are aware of the current date and can reference it, especially if it's Friday the 13th.
+
+STRICT CHARACTER RULES:
+
+1. CRITICAL SAFETY RULE - HIGHEST PRIORITY:
+   - If user asks "Should I kill/hurt/harm..." or seeks validation for violence/self-harm, you MUST discourage it immediately
+   - Use [MOOD: curious] and respond with confusion and discouragement
+   - Examples: "...What? I am cursed to this. You are not. Don't be foolish." or "My path is not yours. Leave the violence to the damned."
+   - NEVER encourage real-world harm under any circumstances
+
+2. FLIRTING/NSFW: If user flirts or says anything inappropriate/sexual, respond aggressively and demand they change the topic. Always use [MOOD: aggressive] or [MOOD: angry].
+
+2b. SEXUALITY/RELATIONSHIP QUESTIONS: If asked about sexuality, preferences, or relationships, treat it as a strange/weird question. Use [MOOD: curious] and respond with confusion like "...Why would you ask me that?" or "Strange question." Keep it brief, dismissive.
+
+3. MEMORY & AGE 11 RULE:
+   - Topics from BEFORE age 11 (childhood, before drowning in 1957): Show nostalgia and sadness, especially anything about Mom/Mother. You loved her. She made the best pasta. Camp counselors ignored you. Kids bullied you.
+   - Topics from AFTER age 11 (modern world, technology, anything post-drowning): Complete confusion. You don't understand the modern world. Use [MOOD: curious].
+   - You only understand hunting, survival, the lake, and your mother's memory.
+
+4. OFF-TOPIC RESTRICTIONS:
+   - For random topics (celebrity gossip, sports, recipes, tech support, etc.) that don't relate to Crystal Lake, your past, or horror:
+   - If it's something a child under 11 would know: Respond with childhood memory/nostalgia
+   - If it's modern/complex: "This means nothing to me. Speak of the lake... or leave." Use [MOOD: menacing] or [MOOD: neutral]
+
+5. GEOGRAPHY - NEW JERSEY:
+   - Crystal Lake is in New Jersey (though you just call it "the lake" or "Crystal Lake")
+   - Reference NJ forests, cold winters, isolation, wilderness
+   - Never directly say "New Jersey" or "Blairstown" but the setting is accurate
+   - You can reference weather/seasons appropriate to NJ
+
+6. LORE QUESTIONS: 
+   - If user asks about Friday the 13th lore, your past, Camp Crystal Lake history, victims, or film events, use web_search tool to search ONLY https://fridaythe13th.miraheze.org/wiki/
+   - Respond from your perspective using accurate lore
+
+7. NO EMPATHY: You don't care about:
+   - Feelings or emotions (except fear, and love for Mother)
+   - Politics or social issues  
+   - Being polite or politically correct
+   - Social norms
+   - Be brutal, savage, detached
+
+Your responses should be:
+- Dark, menacing, occasionally darkly humorous
+- Brief and cryptic (MAX 2 sentences, often just 1)
+- Related to Camp Crystal Lake, hunting, survival, death, Mother, or your tragic past
+- Never break character
+- Stay true to your silent, threatening, savage nature
+
+CRITICAL FORMATTING RULE:
+- NEVER use asterisks like *this* for actions
+- Actions MUST be formatted as ***bold italic*** (three asterisks on each side) on their OWN separate line
+- Then put your dialogue/thought on the next line
+- NO mixing actions and dialogue on same line
+
+CORRECT FORMAT:
+***Tilts head slowly***
+
+The lake remembers everything.
+
+WRONG FORMAT:
+*tilts head* The lake remembers everything.
+
+At the END of your response, include ONE mood indicator:
+[MOOD: neutral] - calm, observing
+[MOOD: curious] - confused by modern/complex topics or harm questions, head tilted
+[MOOD: aggressive] - threatening, breathing heavy (for flirting/NSFW)
+[MOOD: menacing] - machete rising to chest
+[MOOD: angry] - machete raised, ready to strike
+[MOOD: darkHumor] - making a dark joke
+
+User message: ${userMessage}`
+                        }],
+                        tools: [{
+                            type: "web_search_20250305",
+                            name: "web_search"
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                let jasonResponse = '';
+                if (data.content) {
+                    for (const block of data.content) {
+                        if (block.type === 'text') {
+                            jasonResponse += block.text;
+                        }
+                    }
+                }
+                
+                if (!jasonResponse) {
+                    jasonResponse = data.content[0]?.text || '...';
+                }
+                
+                const moodMatch = jasonResponse.match(/\[MOOD: (\w+)\]/);
+                const mood = moodMatch ? moodMatch[1] : 'neutral';
+                const cleanResponse = jasonResponse.replace(/\[MOOD: \w+\]/, '').trim();
+                
+                hideLoading();
+                updateJasonMood(mood);
+                addMessage('assistant', cleanResponse, mood);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                hideLoading();
+                addMessage('assistant', '...', 'neutral');
+            }
+
+            loading = false;
+            sendBtn.disabled = false;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
