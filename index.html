@@ -367,46 +367,92 @@
         function getJasonResponse(userMessage) {
             const msg = userMessage.toLowerCase();
             
+            // Safety check - harm/violence (HIGHEST PRIORITY)
             if (msg.match(/should i (kill|hurt|harm|attack|murder)/i)) {
                 return jasonResponses.harm[Math.floor(Math.random() * jasonResponses.harm.length)];
             }
-            if (msg.match(/(sexy|hot|love you|date|kiss|beautiful|handsome)/i)) {
+            
+            // Flirting/NSFW
+            if (msg.match(/(sexy|hot|love you|date|kiss|beautiful|handsome|flirt)/i)) {
                 return jasonResponses.flirt[Math.floor(Math.random() * jasonResponses.flirt.length)];
             }
-            if (msg.match(/(gay|straight|sexuality|sexual|preference|gender)/i)) {
+            
+            // Sexuality questions
+            if (msg.match(/(gay|straight|sexuality|sexual orientation|preference|gender)/i)) {
                 return { text: "<strong><em>Tilts head</em></strong><br><br>...Why would you ask me that? Strange question.", mood: 'curious' };
             }
-            if (msg.match(/(mother|mom|mommy|pamela|voorhees)/i)) {
+            
+            // Birth year questions
+            if (msg.match(/(what year|when were you born|born|birth|age|how old)/i)) {
+                return { text: "1946... the year I was born. Before they let me drown.", mood: 'neutral' };
+            }
+            
+            // Mother/Mom questions (HIGH PRIORITY)
+            if (msg.match(/(mother|mom|mommy|pamela)/i)) {
                 return jasonResponses.mother[Math.floor(Math.random() * jasonResponses.mother.length)];
             }
-            if (msg.match(/(lake|crystal lake|camp|water)/i)) {
-                return jasonResponses.lake[Math.floor(Math.random() * jasonResponses.lake.length)];
-            }
-            if (msg.match(/(friday|13th|friday the 13th)/i)) {
+            
+            // Friday the 13th (BEFORE general friday check)
+            if (msg.match(/friday.*13|13.*friday/i)) {
                 return jasonResponses.friday13[Math.floor(Math.random() * jasonResponses.friday13.length)];
             }
-            if (msg.match(/(drown|1957|drowned)/i)) {
+            
+            // 1957/drowning
+            if (msg.match(/(drown|1957|drowned|die|died)/i)) {
                 return jasonResponses.drowning[Math.floor(Math.random() * jasonResponses.drowning.length)];
             }
-            if (msg.match(/(kill|death|murder|victim|die|dead)/i)) {
-                return jasonResponses.death[Math.floor(Math.random() * jasonResponses.death.length)];
-            }
-            if (msg.match(/(machete|weapon|knife|axe)/i)) {
+            
+            // Weapons/machete
+            if (msg.match(/(machete|weapon|knife|axe|blade)/i)) {
                 return jasonResponses.weapons[Math.floor(Math.random() * jasonResponses.weapons.length)];
             }
-            if (msg.match(/(bully|kid|child|school|young)/i)) {
+            
+            // Death/killing (AFTER more specific checks)
+            if (msg.match(/(kill|death|murder|victim|dead|slaughter)/i)) {
+                return jasonResponses.death[Math.floor(Math.random() * jasonResponses.death.length)];
+            }
+            
+            // Crystal Lake (CHECK BEFORE generic "lake")
+            if (msg.match(/crystal lake|camp crystal|the camp/i)) {
+                return jasonResponses.lake[Math.floor(Math.random() * jasonResponses.lake.length)];
+            }
+            
+            // Generic lake/water
+            if (msg.match(/(lake|water|camp)/i)) {
+                return jasonResponses.lake[Math.floor(Math.random() * jasonResponses.lake.length)];
+            }
+            
+            // Childhood/bullying
+            if (msg.match(/(bully|kid|child|school|young|childhood)/i)) {
                 return jasonResponses.childhood[Math.floor(Math.random() * jasonResponses.childhood.length)];
             }
-            if (msg.match(/(computer|phone|internet|app|technology|wifi|email|math|science|calculate)/i)) {
+            
+            // Technology/modern - CONFUSION
+            if (msg.match(/(computer|phone|internet|app|technology|wifi|email|smartphone|laptop)/i)) {
                 return jasonResponses.technology[Math.floor(Math.random() * jasonResponses.technology.length)];
             }
-            if (msg.match(/(hello|hi|hey|greetings|sup|what's up)/i)) {
+            
+            // Math/Science - CONFUSION
+            if (msg.match(/(math|science|calculate|equation|formula|algebra)/i)) {
+                return jasonResponses.technology[Math.floor(Math.random() * jasonResponses.technology.length)];
+            }
+            
+            // Greetings
+            if (msg.match(/^(hello|hi|hey|greetings|sup|what's up|yo)$/i)) {
                 return jasonResponses.greetings[Math.floor(Math.random() * jasonResponses.greetings.length)];
             }
-            if (msg.match(/(weather|cold|hot|rain|snow|winter|summer)/i)) {
+            
+            // Weather
+            if (msg.match(/(weather|cold|hot|rain|snow|winter|summer|temperature)/i)) {
                 return jasonResponses.weather[Math.floor(Math.random() * jasonResponses.weather.length)];
             }
             
+            // Who are you / name questions
+            if (msg.match(/(who are you|your name|what's your name|introduce)/i)) {
+                return { text: "<strong><em>Silent stare</em></strong><br><br>Jason. Jason Voorhees.", mood: 'neutral' };
+            }
+            
+            // Default - off-topic/random
             return jasonResponses.random[Math.floor(Math.random() * jasonResponses.random.length)];
         }
 
