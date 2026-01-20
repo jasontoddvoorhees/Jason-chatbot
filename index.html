@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Crystal Lake - Jason's Shack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #000000, #0a0a0a);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .glow-text {
+            text-shadow: 0 0 10px #8b0000, 0 0 20px #8b0000;
+        }
+        .message-content strong em {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+        }
+        .main-area {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            overflow: hidden;
+        }
+        .jason-section {
+            background: linear-gradient(to bottom, #1a1a1a, #000000);
+            border-right: 4px solid #7f1d1d;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .jason-image-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 200px;
+        }
+        .jason-image-container img {
+            width: 100%;
+            border: 3px solid #7f1d1d;
+            border-radius: 8px;
+            filter: brightness(0.8) contrast(1.2);
+        }
+        .mood-label {
+            text-align: center;
+            color: #dc2626;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 8px;
+        }
+        .thought-bubble {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1f2937;
+            border: 2px solid #7f1d1d;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+        .thought-text {
+            color: #d1d5db;
+            font-size: 14px;
+            font-style: italic;
+            line-height: 1.6;
+        }
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            background: #000000;
+        }
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .input-area {
+            border-top: 4px solid #7f1d1d;
+            background: #111827;
+            padding: 16px;
+        }
+        .user-message {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+        .assistant-message {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 16px;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+        .user-bubble {
+            background: #7f1d1d;
+            border-color: #991b1b;
+            color: white;
+        }
+        .assistant-bubble {
+            background: #1f2937;
+            border-color: #374151;
+            color: #d1d5db;
+        }
+        .empty-state {
+            text-align: center;
+            color: #dc2626;
+            margin-top: 100px;
+        }
+        .input-container {
+            display: flex;
+            gap: 8px;
+        }
+        .input-field {
+            flex: 1;
+            background: #1f2937;
+            border: 2px solid #7f1d1d;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: white;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: #dc2626;
+        }
+        .send-button {
+            background: #7f1d1d;
+            border: 2px solid #991b1b;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .send-button:hover:not(:disabled) {
+            background: #991b1b;
+        }
+        .send-button:disabled {
+            background: #374151;
+            cursor: not-allowed;
+        }
+        .disclaimer {
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .loading-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: #dc2626;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div style="background: linear-gradient(to right, #7f1d1d, #000000); border-bottom: 4px solid #991b1b; padding: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);">
+            <h1 class="glow-text" style="font-size: 36px; font-weight: bold; text-align: center; color: #dc2626; margin: 0;">JASON'S SHACK</h1>
+            <p style="text-align: center; color: #ef4444; font-size: 14px; margin: 4px 0 0 0;">Chat with Jason Voorhees... if you dare</p>
+        </div>
+
+        <!-- Main Area -->
+        <div class="main-area">
+            <!-- Jason Section -->
+            <div class="jason-section">
+                <!-- Thought Bubble -->
+                <div id="thoughtBubble" class="thought-bubble" style="display: none;">
+                    <div id="thoughtText" class="thought-text"></div>
+                </div>
+
+                <!-- Jason Image at Bottom -->
+                <div class="jason-image-container">
+                    <img id="jasonImage" src="https://via.placeholder.com/200x267/1a1a1a/8b0000?text=Jason" alt="Jason Voorhees">
+                    <div id="moodText" class="mood-label">NEUTRAL</div>
+                </div>
+            </div>
+
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div id="messagesContainer" class="messages-area">
+                    <div id="emptyState" class="empty-state">
+                        <p style="font-size: 32px; margin: 0 0 8px 0;">💀</p>
+                        <p style="font-size: 18px; font-style: italic; color: #9ca3af; margin: 4px 0;">The woods are silent...</p>
+                        <p style="font-size: 18px; font-style: italic; color: #9ca3af; margin: 4px 0;">Jason stalks from the shadows...</p>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-container">
+                        <input type="text" id="userInput" class="input-field" placeholder="Speak to Jason...">
+                        <button id="sendBtn" class="send-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
+                    <p class="disclaimer">⚠️ DISCLAIMER: For entertainment purposes only, this is a fictional character chat. All of the answers are fictitious and should not be interpreted as actual guidance or motivation for any particular course of action!!!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Image URLs - REPLACE THESE WITH YOUR ACTUAL JASON GIF/PNG URLS
+        const jasonImages = {
+            neutral: 'https://via.placeholder.com/200x267/1a1a1a/8b0000?text=NEUTRAL',
+            curious: 'https://via.placeholder.com/200x267/1a1a1a/8b0000?text=CURIOUS',
+            aggressive: 'https://via.placeholder.com/200x267/1a1a1a/8b0000?text=AGGRESSIVE',
+            menacing: 'https://via.placeholder.com/200x267/1a1a1a/8b0000?text=MENACING',
+            angry: 'https://via.placeholder.com/200x267/1a1a1a/8b0000?text=ANGRY',
+            darkHumor: 'https://via.placeholder.com/200x267/1a1a1a/8b0000?text=DARK+HUMOR'
+        };
+
+        // Jason's Response Database
+        const jasonResponses = {
+            harm: [
+                { text: "<strong><em>Tilts head in confusion</em></strong><br><br>...What? I am cursed to this. You are not. Don't be foolish.", mood: 'curious' },
+                { text: "<strong><em>Stands still</em></strong><br><br>My path is not yours. Leave the violence to the damned.", mood: 'curious' }
+            ],
+            flirt: [
+                { text: "<strong><em>Grips machete tighter</em></strong><br><br>You waste my time. Speak of the lake or leave.", mood: 'aggressive' },
+                { text: "<strong><em>Breathing heavily</em></strong><br><br>Change the topic. Now.", mood: 'aggressive' }
+            ],
+            mother: [
+                { text: "<strong><em>Looks down</em></strong><br><br>Mother... she was everything. She made the best pasta.", mood: 'neutral' },
+                { text: "Mother loved me when no one else did. The counselors let me drown.", mood: 'neutral' },
+                { text: "<strong><em>Head bows</em></strong><br><br>They took her from me. Now I take from them.", mood: 'menacing' }
+            ],
+            lake: [
+                { text: "The lake is my home. My hunting ground. They never learn to stay away.", mood: 'neutral' },
+                { text: "<strong><em>Stares into distance</em></strong><br><br>Crystal Lake... where I drowned. Where I returned.", mood: 'neutral' },
+                { text: "The woods are silent here. Perfect for hunting.", mood: 'menacing' }
+            ],
+            death: [
+                { text: "Death follows me like a shadow. It's all I know now.", mood: 'neutral' },
+                { text: "<strong><em>Machete rises</em></strong><br><br>They scream. They run. They all fall eventually.", mood: 'menacing' },
+                { text: "I don't kill for pleasure. I kill because they deserve it.", mood: 'darkHumor' }
+            ],
+            friday13: [
+                { text: "Friday the 13th... my day. When the lake runs red.", mood: 'menacing' },
+                { text: "<strong><em>Breathing intensifies</em></strong><br><br>The most sacred day. Camp Crystal Lake remembers.", mood: 'aggressive' }
+            ],
+            drowning: [
+                { text: "1957... the year they let me drown. The counselors were too busy.", mood: 'neutral' },
+                { text: "<strong><em>Looks at the water</em></strong><br><br>I watched from below the surface. Now I watch from the shore.", mood: 'neutral' }
+            ],
+            childhood: [
+                { text: "<strong><em>Distant stare</em></strong><br><br>The other kids... they laughed at me. Called me names.", mood: 'neutral' },
+                { text: "Mother protected me. She was all I had before they took her.", mood: 'neutral' }
+            ],
+            technology: [
+                { text: "<strong><em>Tilts head</em></strong><br><br>...What? These words mean nothing to me.", mood: 'curious' },
+                { text: "I don't understand your modern world. Only the hunt.", mood: 'curious' }
+            ],
+            random: [
+                { text: "This means nothing to me. Speak of the lake... or leave.", mood: 'menacing' },
+                { text: "<strong><em>Silent stare</em></strong><br><br>You waste my time.", mood: 'neutral' },
+                { text: "The only thing that matters is the lake.", mood: 'neutral' }
+            ],
+            greetings: [
+                { text: "<strong><em>Stares silently</em></strong><br><br>You've returned to Crystal Lake...", mood: 'neutral' },
+                { text: "<strong><em>Stands motionless</em></strong><br><br>...", mood: 'neutral' }
+            ],
+            weather: [
+                { text: "The forest is cold. Like death. Like the lake in winter.", mood: 'neutral' },
+                { text: "<strong><em>Looks at sky</em></strong><br><br>The woods know no mercy. Neither do I.", mood: 'neutral' }
+            ],
+            weapons: [
+                { text: "<strong><em>Raises machete</em></strong><br><br>My mother's favorite. Sharp. Efficient.", mood: 'menacing' },
+                { text: "The machete never fails me. Unlike people.", mood: 'darkHumor' }
+            ]
+        };
+
+        let currentMood = 'neutral';
+        let loading = false;
+
+        const messagesContainer = document.getElementById('messagesContainer');
+        const emptyState = document.getElementById('emptyState');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const jasonImage = document.getElementById('jasonImage');
+        const moodText = document.getElementById('moodText');
+        const thoughtBubble = document.getElementById('thoughtBubble');
+        const thoughtText = document.getElementById('thoughtText');
+
+        function updateJasonMood(mood) {
+            currentMood = mood;
+            jasonImage.src = jasonImages[mood];
+            moodText.textContent = mood.replace(/([A-Z])/g, ' $1').trim().toUpperCase();
+        }
+
+        function addMessage(role, content) {
+            if (emptyState && emptyState.parentNode) {
+                emptyState.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = role === 'user' ? 'user-message' : 'assistant-message';
+            
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${role === 'user' ? 'user-bubble' : 'assistant-bubble'}`;
+
+            if (role === 'assistant') {
+                bubble.innerHTML = content;
+                thoughtText.innerHTML = content;
+                thoughtBubble.style.display = 'block';
+            } else {
+                bubble.textContent = content;
+            }
+
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingIndicator';
+            loadingDiv.className = 'assistant-message';
+            loadingDiv.innerHTML = `
+                <div class="message-bubble assistant-bubble">
+                    <div class="loading-dots">
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(loadingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) loadingIndicator.remove();
+        }
+
+        function getJasonResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            
+            if (msg.match(/should i (kill|hurt|harm|attack|murder)/i)) {
+                return jasonResponses.harm[Math.floor(Math.random() * jasonResponses.harm.length)];
+            }
+            if (msg.match(/(sexy|hot|love you|date|kiss|beautiful|handsome)/i)) {
+                return jasonResponses.flirt[Math.floor(Math.random() * jasonResponses.flirt.length)];
+            }
+            if (msg.match(/(gay|straight|sexuality|sexual|preference|gender)/i)) {
+                return { text: "<strong><em>Tilts head</em></strong><br><br>...Why would you ask me that? Strange question.", mood: 'curious' };
+            }
+            if (msg.match(/(mother|mom|mommy|pamela|voorhees)/i)) {
+                return jasonResponses.mother[Math.floor(Math.random() * jasonResponses.mother.length)];
+            }
+            if (msg.match(/(lake|crystal lake|camp|water)/i)) {
+                return jasonResponses.lake[Math.floor(Math.random() * jasonResponses.lake.length)];
+            }
+            if (msg.match(/(friday|13th|friday the 13th)/i)) {
+                return jasonResponses.friday13[Math.floor(Math.random() * jasonResponses.friday13.length)];
+            }
+            if (msg.match(/(drown|1957|drowned)/i)) {
+                return jasonResponses.drowning[Math.floor(Math.random() * jasonResponses.drowning.length)];
+            }
+            if (msg.match(/(kill|death|murder|victim|die|dead)/i)) {
+                return jasonResponses.death[Math.floor(Math.random() * jasonResponses.death.length)];
+            }
+            if (msg.match(/(machete|weapon|knife|axe)/i)) {
+                return jasonResponses.weapons[Math.floor(Math.random() * jasonResponses.weapons.length)];
+            }
+            if (msg.match(/(bully|kid|child|school|young)/i)) {
+                return jasonResponses.childhood[Math.floor(Math.random() * jasonResponses.childhood.length)];
+            }
+            if (msg.match(/(computer|phone|internet|app|technology|wifi|email|math|science|calculate)/i)) {
+                return jasonResponses.technology[Math.floor(Math.random() * jasonResponses.technology.length)];
+            }
+            if (msg.match(/(hello|hi|hey|greetings|sup|what's up)/i)) {
+                return jasonResponses.greetings[Math.floor(Math.random() * jasonResponses.greetings.length)];
+            }
+            if (msg.match(/(weather|cold|hot|rain|snow|winter|summer)/i)) {
+                return jasonResponses.weather[Math.floor(Math.random() * jasonResponses.weather.length)];
+            }
+            
+            return jasonResponses.random[Math.floor(Math.random() * jasonResponses.random.length)];
+        }
+
+        function sendMessage() {
+            if (!userInput.value.trim() || loading) return;
+
+            const userMessage = userInput.value.trim();
+            userInput.value = '';
+            addMessage('user', userMessage);
+            loading = true;
+            sendBtn.disabled = true;
+            showLoading();
+
+            setTimeout(() => {
+                const response = getJasonResponse(userMessage);
+                hideLoading();
+                updateJasonMood(response.mood);
+                addMessage('assistant', response.text);
+                loading = false;
+                sendBtn.disabled = false;
+            }, 800 + Math.random() * 1200);
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
