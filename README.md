@@ -1,6 +1,6 @@
 # Jason's Shack - Interactive Character Chat Experience
 
-![Chat Banner](https://img.shields.io/badge/Chat-Friday%20the%2013th-red?style=for-the-badge)
+![Chat Banner](https://img.shields.io/badge/Chat-Jason Voorhees-red?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Live-green?style=for-the-badge)
 ![Semi Canon](https://img.shields.io/badge/Lore-Semi%20Canon-darkred?style=for-the-badge)
 
